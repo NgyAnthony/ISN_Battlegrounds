@@ -34,10 +34,7 @@ class Game:
         #    if hexagons[base_hexagon][x].tags == "%s.%s" %(c, r):
         #       color = hexagons[base_hexagon][x].color
         # the actual code I want to implement
-        if new_hexagon >= 2:
-            for x in range(len(hexagons[0])):
-                self.canvas_instance.tag_raise(hexagons[base_hexagon-1][x].tags)
-
+        
         for c in range(cols):
             if c % 2 == 0:
                 offset = size * sqrt(3) / 2
