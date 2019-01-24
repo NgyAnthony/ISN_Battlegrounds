@@ -1,99 +1,114 @@
-from tkinter import *
-from math import cos, sin, sqrt, radians
+from math import cos, sin, sqrt, radians  # imports used to create hexagons
+import tkinter as tk
 
-#------------------------------------------------------------------------------
-class App(Tk):
-    def __init__(self):
-        Tk.__init__(self)
-        self.title("Hexagon Grid")  # Titre
-        self.can = Canvas(self, width=1280, height=800, bg="#a1e2a1")  # Dimensions
-        self.can.pack()
+hexagons = [[]]  # This is a list of list of the boards of each canvas_instance that is created
+base_hexagon = 0  # targets current list used for the base
+new_hexagon = 1  # targets to the empty list to be appended
 
-        self.hexagons = []
-        self.initGrid(35, 18, 25, debug=False)  # Longueur/Largeur/Longeur d'hexagone
+class App:
+    """
+    This function creates a new canvas_instance which is used everytime Game is called.
+    """
+    def __init__(self, canvas_instance=None):
+        self.canvas_instance = canvas_instance
 
-        self.can.bind("<Button-1>", self.click)  # Détection de clic
+class Game:
+    def __init__(self, master):
+        self.master = master
+        self.canvas_instance = tk.Canvas(self.master, width=1280, height=800, bg="#a1e2a1")
+        self.canvas_instance.pack()
+        self.app_instance = App(self.canvas_instance)
+        self.initGrid(35, 18, 25, debug=False)  # Calls init grid with cols, rows and size.
+
+        # This if statement hides the previous instance.
+        if base_hexagon == 0:
+            hexagons[0][0].parent.pack_forget()  # exception : hide "0" at the beginning
+        elif base_hexagon > 0:
+            hexagons[base_hexagon - 1][0].parent.pack_forget()
+
+        self.canvas_instance.bind("<Button-1>", self.click)  # bind click function when RMB is used
 
     def initGrid(self, cols, rows, size, debug):
         """
-        2d grid of hexagons
+        This function creates the grid of hexagon which will be used as the board.
         """
-        for c in range(cols):  # Détermine le décalage: évite la superposition des hexagones
+        color = "#a1e2a1"  # default color
+        for c in range(cols):  # avoid overlapping hexagons
             if c % 2 == 0:
                 offset = size * sqrt(3) / 2
             else:
                 offset = 0
             for r in range(rows):
-                h = FillHexagon(self.can,
-                                c * (size * 1.5),  # Position "x" (en pixel)
-                                (r * (size * sqrt(3))) + offset,  # Position "y" (en pixel)
-                                size,  # Taille de base
-                                "#a1e2a1",  # Couleur de base de l'hexagone
-                                "{}.{}".format(r, c))  # Debug : texte de position
-                self.hexagons.append(h)
+                h = FillHexagon(self.canvas_instance,
+                                c * (size * 1.5),
+                                (r * (size * sqrt(3))) + offset,
+                                size,
+                                color,
+                                "{}.{}".format(r, c))  # Call FillHexagon to generate the hexagon
+                if base_hexagon == 0:  # exception : initial instancing
+                    hexagons[0].append(h)
+                elif base_hexagon > 0:  # append to the new_hexagon list
+                    hexagons[new_hexagon - 1].append(h)
 
+                # This if statement writes position on every hexagon
+                    # Warning : click doesn't work when debug is on
                 if debug:
                     coords = "{}, {}".format(r, c)
-                    self.can.create_text(c * (size * 1.5) + (size / 2),
+                    self.canvas_instance.create_text(c * (size * 1.5) + (size / 2),
                                          (r * (size * sqrt(3))) + offset + (size / 2),
-                                         text=coords, anchor="n", state="disabled")  # state disabled not working
+                                         text=coords, anchor="n", state="disabled")
 
     def click(self, evt):
         """
-        hexagon detection on mouse click
+        Hexagon detection on mouse click
         """
-        x, y = evt.x, evt.y
-        for i in self.hexagons:
-            i.selected = False
-            self.can.itemconfigure(i.tags, fill=i.color)
-        clicked = self.can.find_closest(x, y)[0]  # find closest
-        self.hexagons[int(clicked) - 1].selected = True
-        for i in self.hexagons:  # re-configure selected only
+        x, y = evt.x, evt.y  # get the x and y position of RMB event
+        for i in hexagons[base_hexagon]:  # this for loop erase any trace of its use
+            i.selected = False  # set every hex object to "not selected"
+            self.canvas_instance.itemconfigure(i.tags, fill=i.color)  # fill the color of the hexagon back to its own
+        clicked = self.canvas_instance.find_closest(x, y)[0]  # define "clicked" as the closest object near x,y
+        hexagons[base_hexagon][int(clicked) - 1].selected = True
+        for i in hexagons[base_hexagon]:
             if i.selected:
-                self.can.itemconfigure(i.tags, fill="#4286f4")
+                self.canvas_instance.itemconfigure(i.tags, fill="#4286f4")  # fill the clicked hex with color
+                print(i.__dict__)
 
 
-    @staticmethod
 
-    def colormk(position, color):
-        currentposition = position
-        currentcolor = color
-
-    def colorize(self, currentposition, color):
-        self.can.itemconfigure(self.hexagons[301].tags, fill="#b71717")
-        self.can.itemconfigure(position, fill=color)
-
-    #TODO : Call colorize here with the position and the color of the current instance of Squad
-
-#------------------------------------------------------------------------------
 class FillHexagon:
     def __init__(self, parent, x, y, length, color, tags):
-        """Définition des paramètres d'un hexagone de base"""
-        self.parent = parent  # Canvas
-        self.x = x  # axe x (haut gauche)
-        self.y = y  # axe y (haut gauche)
-        self.length = length  # longueur d'un côté d'hexagone
-        self.color = color    # couleur
-
-        self.selected = False  # Case non sélectionnée
-        self.tags = tags  # Tags pour apparition des coordonnées
-
-        self.draw()  # Appel de la fonction draw
+        """ Define parameters of the hexagon """
+        self.parent = parent
+        self.x = x
+        self.y = y
+        self.length = length
+        self.tags = tags
+        self.selected = False
+        if base_hexagon == 0:  # the first instance leaves the default color
+            self.color = color
+        else:
+            for x in range(630):
+                # this for loop searches the object in hex list and give the color
+                if hexagons[base_hexagon - 1][x].tags == self.tags:
+                    self.color = hexagons[base_hexagon - 1][x].color
+                    break
+                else:
+                    self.color = "#a1e2a1"  # foolproofing color assignment
+        self.draw()
 
     def draw(self):
-        """draw() trace l'hexagone."""
-        start_x = self.x  # Nombre de colonnes
-        start_y = self.y  # Nombre de lignes
-        angle = 60  # Angle d'un hexagone
+        """draw() creates the hexagon"""
+        start_x = self.x
+        start_y = self.y
+        angle = 60  # angle of hexagon
         coords = []
         for i in range(6):
             end_x = start_x + self.length * cos(radians(angle * i))
             end_y = start_y + self.length * sin(radians(angle * i))
-            # Définition des points x,y de l'hexagone
             coords.append([start_x, start_y])
             start_x = end_x
             start_y = end_y
-        # Traçage de l'hexagone avec la fonction create_polygon
+        # create_polygon creates a polygon based on coords
         self.parent.create_polygon(coords[0][0],
                                    coords[0][1],
                                    coords[1][0],
@@ -110,11 +125,10 @@ class FillHexagon:
                                    outline="grey",
                                    tags=self.tags)
 
-#----------------------------------------------------------
-
-class Squad():
-    nb_of_squads = 0
-
+class Squad:
+    """
+    This class generates a Squad and re-instances the board.
+    """
     def __init__(self, side, units, arsenal, ap, dp, position, color):
         self.side = side
         self.units = units
@@ -123,15 +137,28 @@ class Squad():
         self.dp = dp
         self.position = position
         self.color = color
-        Squad.nb_of_squads += 1
         self.squadAppear()
 
     def squadAppear(self):
-       App.colormk(self.position, self.color)
+        global hexagons, base_hexagon, new_hexagon
+        # get the global variables needed to create the board and modify it
+        for x in range(len(hexagons[base_hexagon])):
+            # this for loop targets the position of the instance with the current position in the form of tags
+            # and change the color of the targeted hexagon
+            if hexagons[base_hexagon][x].tags == self.position:
+                hexagons[base_hexagon][x].color = self.color
+                break
+        hexagons.append([])  # append a new empty list to be used as new_hexagon at the next instance
+        base_hexagon += 1
+        new_hexagon += 1
+        Game(root)  # create new Game instance
 
-squad_1 = Squad("blue", 6, 'infantry', 3, 3, 21.23, "#013dc6")
-squad_2 = Squad("red", 6, 'infantry', 3, 3, 21.24, "#b71717")
 
-if __name__ =='__main__':
-    app = App()
-    app.mainloop()
+root = tk.Tk()
+Game(root)  # first instance of canvas
+
+squad_1 = Squad("blue", 6, 'infantry', 3, 3, '15.5', "#013dc6")
+squad_2 = Squad("blue", 6, 'infantry', 3, 3, '10.5', "#013dc6")
+squad_3 = Squad("blue", 6, 'infantry', 3, 3, '5.5', "#013dc6")
+
+root.mainloop()
