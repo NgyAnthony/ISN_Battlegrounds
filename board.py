@@ -4,6 +4,8 @@ import tkinter as tk
 hexagons = [[]]  # This is a list of list of the boards of each canvas_instance that is created
 base_hexagon = 0  # targets current list used for the base
 new_hexagon = 1  # targets to the empty list to be appended
+squad_list = []  # this list contains all the instances of the Squad class
+
 
 class App:
     """
@@ -11,6 +13,7 @@ class App:
     """
     def __init__(self, canvas_instance=None):
         self.canvas_instance = canvas_instance
+
 
 class Game:
     def __init__(self, master):
@@ -71,13 +74,23 @@ class Game:
         hexagons[base_hexagon][int(clicked) - 1].selected = True
         for i in hexagons[base_hexagon]:
             if i.selected:
-                self.getNear(i.x, i.y, 80, i.tags)
-                self.canvas_instance.itemconfigure(i.tags, fill="#bdc3c7")  # fill the clicked hex with color
+                if i.color == "#a1e2a1":  # if the hexagon is green
+                    self.canvas_instance.itemconfigure(i.tags, fill="#bdc3c7")  # fill the clicked hex with color
+                if i.color == "#013dc6":  # if the hexagon is blue
+                    for a in range(len(squad_list)):
+                        if i.tags == squad_list[a].position:
+                            mp = squad_list[a].mp
+                    if mp == 1:  # assigning pixel density to reach neighbours depending on movement points
+                        area = 50
+                    elif mp == 2:
+                        area = 80
+                    self.getNear(i.x, i.y, area, i.tags)
                 #print(i.__dict__)
 
     def getNear(self, x, y, area, origin):
         neighbours = []  # this list includes all the tags of the neighbours of the selected position
         for a in range(630):
+            # define x and y define the zone in which movement will be possible
             neighbour_x0 = x - area
             neighbour_x1 = x + area
 
@@ -104,6 +117,7 @@ class Game:
             for i in hexagons[base_hexagon]:
                 if i.tags == neighbours[m]:
                     self.canvas_instance.itemconfigure(i.tags, fill="#f1c40f")  # fill the clicked hex with color
+
 
 class FillHexagon:
     def __init__(self, parent, x, y, length, color, tags):
@@ -155,16 +169,18 @@ class FillHexagon:
                                    outline="grey",
                                    tags=self.tags)
 
+
 class Squad:
     """
     This class generates a Squad and re-instances the board.
     """
-    def __init__(self, side, units, arsenal, ap, dp, position, color):
+    def __init__(self, side, units, arsenal, ap, dp, mp, position, color):
         self.side = side
         self.units = units
         self.arsenal = arsenal
-        self.ap = ap
-        self.dp = dp
+        self.ap = ap  # attack points
+        self.dp = dp  # defense points
+        self.mp = mp  # movement points
         self.position = position
         self.color = color
         self.squadAppear()
@@ -181,14 +197,15 @@ class Squad:
         hexagons.append([])  # append a new empty list to be used as new_hexagon at the next instance
         base_hexagon += 1
         new_hexagon += 1
+        squad_list.append(self)  # append the instance object to a list
         Game(root)  # create new Game instance
 
 
 root = tk.Tk()
 Game(root)  # first instance of canvas
 
-squad_1 = Squad("blue", 6, 'infantry', 3, 3, '15.5', "#013dc6")
-squad_2 = Squad("blue", 6, 'infantry', 3, 3, '10.5', "#013dc6")
-squad_3 = Squad("blue", 6, 'infantry', 3, 3, '5.5', "#013dc6")
+squad_1 = Squad("blue", 6, 'infantry', 3, 3, 2, '15.5', "#013dc6")
+squad_2 = Squad("blue", 6, 'infantry', 3, 3, 2, '10.5', "#013dc6")
+squad_3 = Squad("blue", 6, 'infantry', 3, 3, 2, '5.5', "#013dc6")
 
 root.mainloop()
