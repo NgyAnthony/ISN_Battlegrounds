@@ -8,10 +8,10 @@ squad_list = []  # this list contains all the instances of the Squad class
 
 
 class App:
-    """
-    This function creates a new canvas_instance which is used everytime Game is called.
-    """
     def __init__(self, canvas_instance=None):
+        """
+        This function creates a new canvas_instance which is used everytime Game is called.
+        """
         self.canvas_instance = canvas_instance
 
 
@@ -34,7 +34,12 @@ class Game:
 
     def initGrid(self, cols, rows, size, debug):
         """
-        This function creates the grid of hexagon which will be used as the board.
+                This function creates the grid of hexagon which will be used as the board.
+        :param cols: number of columns used on the board
+        :param rows: number of rows used on the board
+        :param size: size of one side of hexagon
+        :param debug: True/False, make text appear on hexagons
+        :return: game board is returned
         """
         color = "#a1e2a1"  # default color
         for c in range(cols):  # avoid overlapping hexagons
@@ -64,7 +69,9 @@ class Game:
 
     def click(self, evt):
         """
-        Hexagon detection on mouse click
+                Hexagon detection on mouse click
+        :param evt: get the x and y position of the click
+        :return: determine if we need to find the neighbours or if hex is empty
         """
         x, y = evt.x, evt.y  # get the x and y position of RMB event
         for i in hexagons[base_hexagon]:  # this for loop erase any trace of its use
@@ -76,7 +83,7 @@ class Game:
             if i.selected:
                 if i.color == "#a1e2a1":  # if the hexagon is green
                     self.canvas_instance.itemconfigure(i.tags, fill="#bdc3c7")  # fill the clicked hex with color
-                if i.color == "#013dc6":  # if the hexagon is blue
+                elif i.color == "#013dc6":  # if the hexagon is blue
                     for a in range(len(squad_list)):
                         if i.tags == squad_list[a].position:
                             mp = squad_list[a].mp
@@ -88,7 +95,19 @@ class Game:
                 #print(i.__dict__)
 
     def getNear(self, x, y, area, origin):
+        """
+                This function determines the neighbours of a Squad.
+        :param x: x position of the clicked hexagon
+        :param y: y position of the clicked hexagon
+        :param area: pixel width used to determine neighbours
+        :param origin: clicked hexagon (to remove him from neighbours list)
+        :return: colors the area where action is possible
+
+        """
         neighbours = []  # this list includes all the tags of the neighbours of the selected position
+        enemy_neighbour = []
+        friendly_neighbour = []
+
         for a in range(630):
             # define x and y define the zone in which movement will be possible
             neighbour_x0 = x - area
@@ -107,6 +126,17 @@ class Game:
             if origin == neighbours[m]:
                 neighbours.remove(neighbours[m])
                 break
+
+        # This for loops removes enemies and friendlies and append them to another list
+        for m in range(len(neighbours)):
+            for i in hexagons[base_hexagon]:
+                if i.tags == neighbours[m] and i.color == "#c0392b":
+                    enemy_neighbour.append(neighbours[m])
+                if i.tags == neighbours[m] and i.color == "#013dc6":
+                    friendly_neighbour.append(neighbours[m])
+
+        neighbours = list(set(neighbours) - set(enemy_neighbour))
+        neighbours = list(set(neighbours) - set(friendly_neighbour))
 
         # The two following for statements fill the near elements of the clicked hexagons
         for m in range(len(neighbours)):
@@ -141,7 +171,10 @@ class FillHexagon:
         self.draw()
 
     def draw(self):
-        """draw() creates the hexagon"""
+        """
+        draw() creates the hexagon
+        :return: one hexagon is drawn on the board.
+        """
         start_x = self.x
         start_y = self.y
         angle = 60  # angle of hexagon
@@ -171,10 +204,18 @@ class FillHexagon:
 
 
 class Squad:
-    """
-    This class generates a Squad and re-instances the board.
-    """
     def __init__(self, side, units, arsenal, ap, dp, mp, position, color):
+        """
+                       This class generates a Squad and re-instances the board.
+        :param side: The side determines if you're on the blue or red side.
+        :param units: Units are the numbers of units. They're basically HP.
+        :param arsenal: Arsenal determines if the Squad is made of tanks, rangers...
+        :param ap: Attack points.
+        :param dp: Defense points.
+        :param mp: Movement points.
+        :param position: Position on the board. (x.y)
+        :param color: Color code.
+        """
         self.side = side
         self.units = units
         self.arsenal = arsenal
@@ -204,8 +245,8 @@ class Squad:
 root = tk.Tk()
 Game(root)  # first instance of canvas
 
-squad_1 = Squad("blue", 6, 'infantry', 3, 3, 2, '15.5', "#013dc6")
-squad_2 = Squad("blue", 6, 'infantry', 3, 3, 2, '10.5', "#013dc6")
-squad_3 = Squad("blue", 6, 'infantry', 3, 3, 2, '5.5', "#013dc6")
+squad_1 = Squad("blue", 6, 'infantry', 3, 3, 1, '15.5', "#013dc6")
+squad_2 = Squad("red", 6, 'infantry', 3, 3, 2, '15.4', "#c0392b")
+squad_3 = Squad("blue", 6, 'infantry', 3, 3, 2, '14.5', "#013dc6")
 
 root.mainloop()
