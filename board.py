@@ -19,7 +19,7 @@ class Game:
         self.canvas_instance = tk.Canvas(self.master, width=1280, height=800, bg="#a1e2a1")
         self.canvas_instance.pack()
         self.app_instance = App(self.canvas_instance)
-        self.initGrid(35, 18, 25, debug=True)  # Calls init grid with cols, rows and size.
+        self.initGrid(35, 18, 25, debug=False)  # Calls init grid with cols, rows and size.
 
         # This if statement hides the previous instance.
         if base_hexagon == 0:
@@ -71,10 +71,39 @@ class Game:
         hexagons[base_hexagon][int(clicked) - 1].selected = True
         for i in hexagons[base_hexagon]:
             if i.selected:
+                self.getNear(i.x, i.y, 80, i.tags)
                 self.canvas_instance.itemconfigure(i.tags, fill="#bdc3c7")  # fill the clicked hex with color
-                print(i.__dict__)
+                #print(i.__dict__)
 
+    def getNear(self, x, y, area, origin):
+        neighbours = []  # this list includes all the tags of the neighbours of the selected position
+        for a in range(630):
+            neighbour_x0 = x - area
+            neighbour_x1 = x + area
 
+            neighbour_y0 = y - area
+            neighbour_y1 = y + area
+
+            if neighbour_x1 >= hexagons[base_hexagon][a].x >= neighbour_x0 and \
+                    neighbour_y1 >= hexagons[base_hexagon][a].y >= neighbour_y0:
+                neighbours.append(hexagons[base_hexagon][a].tags)
+        #print(neighbours)
+
+        # This statement removes the original position from the list
+        for m in range(len(neighbours)):
+            if origin == neighbours[m]:
+                neighbours.remove(neighbours[m])
+                break
+
+        # The two following for statements fill the near elements of the clicked hexagons
+        for m in range(len(neighbours)):
+            for i in hexagons[base_hexagon]:  # this for loop erase any trace of its use
+                self.canvas_instance.itemconfigure(i.tags, fill=i.color)  # fill the color of the hexagon back to its own
+
+        for m in range(len(neighbours)):
+            for i in hexagons[base_hexagon]:
+                if i.tags == neighbours[m]:
+                    self.canvas_instance.itemconfigure(i.tags, fill="#f1c40f")  # fill the clicked hex with color
 
 class FillHexagon:
     def __init__(self, parent, x, y, length, color, tags):
