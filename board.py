@@ -15,10 +15,11 @@ class App:
 class Game:
     def __init__(self, master):
         self.master = master
+        self.master.title("Battlegrounds")
         self.canvas_instance = tk.Canvas(self.master, width=1280, height=800, bg="#a1e2a1")
         self.canvas_instance.pack()
         self.app_instance = App(self.canvas_instance)
-        self.initGrid(35, 18, 25, debug=False)  # Calls init grid with cols, rows and size.
+        self.initGrid(35, 18, 25, debug=True)  # Calls init grid with cols, rows and size.
 
         # This if statement hides the previous instance.
         if base_hexagon == 0:
@@ -44,7 +45,7 @@ class Game:
                                 (r * (size * sqrt(3))) + offset,
                                 size,
                                 color,
-                                "{}.{}".format(r, c))  # Call FillHexagon to generate the hexagon
+                                "{}.{}".format(c, r))  # Call FillHexagon to generate the hexagon
                 if base_hexagon == 0:  # exception : initial instancing
                     hexagons[0].append(h)
                 elif base_hexagon > 0:  # append to the new_hexagon list
@@ -53,7 +54,7 @@ class Game:
                 # This if statement writes position on every hexagon
                     # Warning : click doesn't work when debug is on
                 if debug:
-                    coords = "{}, {}".format(r, c)
+                    coords = "{}, {}".format(c, r)
                     self.canvas_instance.create_text(c * (size * 1.5) + (size / 2),
                                          (r * (size * sqrt(3))) + offset + (size / 2),
                                          text=coords, anchor="n", state="disabled")
@@ -70,7 +71,7 @@ class Game:
         hexagons[base_hexagon][int(clicked) - 1].selected = True
         for i in hexagons[base_hexagon]:
             if i.selected:
-                self.canvas_instance.itemconfigure(i.tags, fill="#4286f4")  # fill the clicked hex with color
+                self.canvas_instance.itemconfigure(i.tags, fill="#bdc3c7")  # fill the clicked hex with color
                 print(i.__dict__)
 
 
