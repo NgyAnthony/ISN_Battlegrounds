@@ -27,6 +27,7 @@ class Game:
         self.previous_clicked = []
         self.neighbours = []  # this list includes all the tags of the neighbours of the selected position
         self.enemy_neighbour = []
+        self.enemy_neighbour_inrange = []
         self.friendly_neighbour = []
 
         # This if statement hides the previous instance.
@@ -102,7 +103,7 @@ class Game:
                                     squad_list[r].position = i.tags
 
                 elif i.tags in self.enemy_neighbour:
-                    print("hi")
+                    pass
 
                 elif i.color == "#a1e2a1":  # if the hexagon is empty
                     self.canvas_instance.itemconfigure(i.tags, fill="#bdc3c7")  # fill the clicked hex with color
@@ -160,6 +161,20 @@ class Game:
 
         self.neighbours = list(set(self.neighbours) - set(self.enemy_neighbour))
         self.neighbours = list(set(self.neighbours) - set(self.friendly_neighbour))
+
+        # This for loop determines if the ennemy is within range
+        for p in range(630):
+            attackable_x0 = x - 50
+            attackable_x1 = x + 50
+
+            attackable_y0 = y - 50
+            attackable_y1 = y + 50
+
+            if hexagons[base_hexagon][p].color == "#c0392b" and \
+                    attackable_x1 >= hexagons[base_hexagon][p].x >= attackable_x0 and \
+                    attackable_y1 >= hexagons[base_hexagon][p].y >= attackable_y0:
+                    self.enemy_neighbour_inrange.append(hexagons[base_hexagon][p])
+                    print(self.enemy_neighbour_inrange)
 
         # The two following for statements fill the near elements of the clicked hexagons
         for m in range(len(self.neighbours)):
