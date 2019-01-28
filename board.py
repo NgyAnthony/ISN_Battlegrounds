@@ -6,7 +6,6 @@ base_hexagon = 0  # targets current list used for the base
 new_hexagon = 1  # targets to the empty list to be appended
 squad_list = []  # this list contains all the instances of the Squad class
 
-
 class App:
     def __init__(self, canvas_instance=None):
         """
@@ -29,6 +28,7 @@ class Game:
         self.enemy_neighbour = []
         self.enemy_neighbour_inrange = []
         self.friendly_neighbour = []
+        self.obstacles = []
 
         # This if statement hides the previous instance.
         if base_hexagon == 0:
@@ -91,8 +91,10 @@ class Game:
         for i in hexagons[base_hexagon]:
             if i.selected:
                 previous_squad = hexagons[base_hexagon][self.previous_clicked[len(self.previous_clicked) - 2] - 1].tags
+
+                # This loop moves the hexagon
                 if i.tags in self.neighbours:
-                    for x in range(len(hexagons[base_hexagon - 1])):  # This loop moves the hexagon
+                    for x in range(len(hexagons[base_hexagon - 1])):  #
                         if hexagons[base_hexagon][x].tags == i.tags:
                             i.color = hexagons[base_hexagon][self.previous_clicked[len(self.previous_clicked) - 2] - 1].color
                             hexagons[base_hexagon][self.previous_clicked[len(self.previous_clicked) - 2] - 1].color = "#a1e2a1"
@@ -105,11 +107,9 @@ class Game:
                                     squad_list[r].position = i.tags
                                     print("Click: squad_list at", previous_squad, "now at", i.tags, ".")
 
-                print(self.enemy_neighbour_inrange)
                 # This for loop look for enemies if user has attacked.
                 for p in range(len(self.enemy_neighbour_inrange)):
                     if i.tags in self.enemy_neighbour_inrange[p].tags:
-                        print(i)
                         for b in self.enemy_neighbour_inrange:
                             for l in range(len(squad_list)):
                                 if squad_list[l].position == previous_squad:
@@ -117,11 +117,13 @@ class Game:
                             self.attack(b, attacker)
                             break
 
-                if i.color == "#a1e2a1":  # if the hexagon is empty
+                # If the hexagon is empty or an obstacle
+                if i.color == "#a1e2a1" or i.color == "#60ace6" or i.color == "#a1603a":
                     self.canvas_instance.itemconfigure(i.tags, fill="#bdc3c7")  # fill the clicked hex with color
-                    print("Click: empty hexagon at", i.tags, " selected.")
+                    print("Click: empty hexagon or obstacle at", i.tags, " selected.")
 
-                elif i.color != "#a1e2a1":  # if the hexagon is a Squad
+                # If the hexagon is a Squad
+                elif i.color != "#a1e2a1":
                     print("Click:", i.color, "hexagon at", i.tags, "has been selected.")
                     for a in range(len(squad_list)):
                         if i.tags == squad_list[a].position:
@@ -176,6 +178,14 @@ class Game:
             if origin == self.neighbours[m]:
                 self.neighbours.remove(self.neighbours[m])
                 break
+
+        # This statement removes every obstacles from the neighbours
+        for m in range(len(self.neighbours) - 1):
+            for i in hexagons[base_hexagon]:
+                if i.tags == self.neighbours[m] and (i.color == "#60ace6" or i.color == "#a1603a"):
+                    self.obstacles.append(self.neighbours[m])
+
+        self.neighbours = list(set(self.neighbours) - set(self.obstacles))
 
         # This for loops removes enemies and friendlies and append them to another list
         for m in range(len(self.neighbours)):
@@ -277,6 +287,35 @@ class FillHexagon:
                                    tags=self.tags)
 
 
+class Field:
+    # Class field changes the color of an object in hexagons
+    #
+    types = {
+        "water": "#60ace6",
+        "mountain": "#a1603a"
+    }
+
+    def __init__(self, position, kind):
+        self.position = position
+        self.kind = kind
+        self.color = Field.types[self.kind]
+        self.placeField()
+        self.reinstance()
+
+
+    def placeField(self):
+        for x in range(len(hexagons[base_hexagon])):
+            if self.position == hexagons[base_hexagon][x].tags:
+                hexagons[base_hexagon][x].color = self.color
+
+    def reinstance(self):
+        global hexagons, base_hexagon, new_hexagon
+        hexagons.append([])  # append a new empty list to be used as new_hexagon at the next instance
+        base_hexagon += 1
+        new_hexagon += 1
+        Game(root)  # create new Game instance
+
+
 class Squad:
     def __init__(self, side, units, arsenal, ap, dp, mp, position, color):
         """
@@ -323,5 +362,8 @@ Game(root)  # first instance of canvas
 squad_1 = Squad("blue", 6, 'infantry', 3, 3, 2, '15.5', "#013dc6")
 squad_2 = Squad("red", 6, 'infantry', 3, 3, 2, '15.4', "#c0392b")
 squad_3 = Squad("blue", 6, 'infantry', 3, 3, 2, '14.5', "#013dc6")
+field_1 = Field('13.10', "mountain")
+field_1 = Field('13.11', "mountain")
+
 
 root.mainloop()
