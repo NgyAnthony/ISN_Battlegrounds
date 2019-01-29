@@ -6,6 +6,7 @@ base_hexagon = 0  # targets current list used for the base
 new_hexagon = 1  # targets to the empty list to be appended
 squad_list = []  # this list contains all the instances of the Squad class
 
+
 class App:
     def __init__(self, canvas_instance=None):
         """
@@ -29,6 +30,8 @@ class Game:
         self.enemy_neighbour_inrange = []
         self.friendly_neighbour = []
         self.obstacles = []
+        self.red_side_colors = ["#c0392b", "#EE5A24"]
+        self.blue_side_colors = ["#013dc6", "#0652DD"]
 
         # This if statement hides the previous instance.
         if base_hexagon == 0:
@@ -123,7 +126,7 @@ class Game:
                     print("Click: empty hexagon or obstacle at", i.tags, " selected.")
 
                 # If the hexagon is a Squad
-                elif i.color != "#a1e2a1":
+                elif i.color in self.red_side_colors or i.color in self.blue_side_colors:
                     print("Click:", i.color, "hexagon at", i.tags, "has been selected.")
                     for a in range(len(squad_list)):
                         if i.tags == squad_list[a].position:
@@ -198,9 +201,6 @@ class Game:
         self.neighbours = list(set(self.neighbours) - set(self.enemy_neighbour))
         self.neighbours = list(set(self.neighbours) - set(self.friendly_neighbour))
 
-        red_side_colors = ["#c0392b", "#EE5A24"]
-        blue_side_colors = ["#013dc6", "#0652DD"]
-
         # This for loop determines if the ennemy is within range
         for p in range(630):
             attackable_x0 = x - 50
@@ -209,8 +209,8 @@ class Game:
             attackable_y0 = y - 50
             attackable_y1 = y + 50
 
-            for a in range(len(red_side_colors)):
-                if hexagons[base_hexagon][p].color == red_side_colors[a] and \
+            for a in range(len(self.red_side_colors)):
+                if hexagons[base_hexagon][p].color == self.red_side_colors[a] and \
                         attackable_x1 >= hexagons[base_hexagon][p].x >= attackable_x0 and \
                         attackable_y1 >= hexagons[base_hexagon][p].y >= attackable_y0:
                         self.enemy_neighbour_inrange.append(hexagons[base_hexagon][p])
@@ -359,11 +359,42 @@ class Squad:
 root = tk.Tk()
 Game(root)  # first instance of canvas
 
-squad_1 = Squad("blue", 6, 'infantry', 3, 3, 2, '15.5', "#013dc6")
-squad_2 = Squad("red", 6, 'infantry', 3, 3, 2, '15.4', "#c0392b")
-squad_3 = Squad("blue", 6, 'infantry', 3, 3, 2, '14.5', "#013dc6")
-field_1 = Field('13.10', "mountain")
-field_1 = Field('13.11', "mountain")
+#squad_1 = Squad("blue", 6, 'infantry', 3, 3, 2, '16.7', "#013dc6")
+#squad_2 = Squad("red", 6, 'infantry', 3, 3, 2, '15.4', "#c0392b")
+#squad_3 = Squad("blue", 6, 'infantry', 3, 3, 2, '14.5', "#013dc6")
+#Water obstacles
 
 
+red_squad_infantry = ['21.10', '23.10', '25.10', '27.10', '29.10', '31.10',
+                      '33.10', '10.3', '11.4', '12.4', '13.5', '14.5',
+                      '15.6', '22.9', '24.9', '26.9', '28.9', '30.9',
+                      '32.9', '15.7']
+
+blue_squad_infantry = ['9.4', '10.4', '11.5', '12.5', '13.6', '14.6', '14.7',
+                       '7.6', '8.6', '9.7', '10.7', '11.8', '12.8',
+                       '13.9', '21.11', '22.10', '23.11', '24.10', '26.10',
+                       '28.10', '30.10', '32.10', '25.11', '27.11', '29.11',
+                       '31.11', '33.11']
+
+water_list = ['14.8', '14.9', '14.10', '14.11', '15.8', '15.9',
+              '15.10', '15.11', '16.8', '16.9', '16.10', '16.11',
+              '17.9', '17.10', '17.11', '17.12', '18.9', '18.10',
+              '18.11', '19.10', '19.11', '19.12', '20.10', '20.11']
+
+mountain_list = ['11.0', '11.1', '10.0', '10.1', '9.1', '8.1',
+                 '8.2', '8.3', '9.2', '9.3', '7.3', '7.4',
+                 '7.5', '6.3', '6.4', '6.5']
+
+
+def place_element():
+    for r in range(len(red_squad_infantry)):
+        Squad("red", 6, 'infantry', 3, 3, 2, red_squad_infantry[r], "#c0392b")
+    for b in range(len(blue_squad_infantry)):
+        Squad("blue", 6, 'infantry', 3, 3, 2, blue_squad_infantry[b], "#013dc6")
+    for w in range(len(water_list)):
+        Field(water_list[w], "water")
+    for m in range(len(mountain_list)):
+        Field(mountain_list[m], "mountain")
+
+place_element()
 root.mainloop()
