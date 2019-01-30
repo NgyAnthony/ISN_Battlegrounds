@@ -110,15 +110,16 @@ class Game:
                                     squad_list[r].position = i.tags
                                     print("Click: squad_list at", previous_squad, "now at", i.tags, ".")
 
-                # This for loop look for enemies if user has attacked.
+                # This for loop look for that can be attacked.
                 for p in range(len(self.enemy_neighbour_inrange)):
-                    if i.tags in self.enemy_neighbour_inrange[p].tags:
-                        for b in self.enemy_neighbour_inrange:
-                            for l in range(len(squad_list)):
-                                if squad_list[l].position == previous_squad:
-                                    attacker = squad_list[l]
-                            self.attack(b, attacker)
-                            break
+                    if i.tags == self.enemy_neighbour_inrange[p].tags:
+                        defencer = self.enemy_neighbour_inrange[p]
+                        for l in range(len(squad_list)):
+                            if squad_list[l].position == previous_squad:
+                                attacker = squad_list[l]
+                        self.attack(defencer, attacker)
+                        break
+                # TODO: The attack must be carried on only if i.tags == squad_list[x].position
 
                 # If the hexagon is empty or an obstacle
                 if i.color == "#a1e2a1" or i.color == "#60ace6" or i.color == "#a1603a":
@@ -359,12 +360,6 @@ class Squad:
 root = tk.Tk()
 Game(root)  # first instance of canvas
 
-#squad_1 = Squad("blue", 6, 'infantry', 3, 3, 2, '16.7', "#013dc6")
-#squad_2 = Squad("red", 6, 'infantry', 3, 3, 2, '15.4', "#c0392b")
-#squad_3 = Squad("blue", 6, 'infantry', 3, 3, 2, '14.5', "#013dc6")
-#Water obstacles
-
-
 red_squad_infantry = ['21.10', '23.10', '25.10', '27.10', '29.10', '31.10',
                       '33.10', '10.3', '11.4', '12.4', '13.5', '14.5',
                       '15.6', '22.9', '24.9', '26.9', '28.9', '30.9',
@@ -385,6 +380,22 @@ mountain_list = ['11.0', '11.1', '10.0', '10.1', '9.1', '8.1',
                  '8.2', '8.3', '9.2', '9.3', '7.3', '7.4',
                  '7.5', '6.3', '6.4', '6.5']
 
+red_squad_infantry_debug = ['15.10', '15.11']
+blue_squad_infantry_debug = ['16.10', '16.11']
+water_list_debug = []
+mountain_list_debug = []
+
+
+def place_element_debug():
+    for r in range(len(red_squad_infantry_debug)):
+        Squad("red", 6, 'infantry', 3, 3, 2, red_squad_infantry_debug[r], "#c0392b")
+    for b in range(len(blue_squad_infantry_debug)):
+        Squad("blue", 6, 'infantry', 3, 3, 2, blue_squad_infantry_debug[b], "#013dc6")
+    for w in range(len(water_list_debug)):
+        Field(water_list_debug[w], "water")
+    for m in range(len(mountain_list_debug)):
+        Field(mountain_list_debug[m], "mountain")
+
 
 def place_element():
     for r in range(len(red_squad_infantry)):
@@ -396,5 +407,6 @@ def place_element():
     for m in range(len(mountain_list)):
         Field(mountain_list[m], "mountain")
 
+#place_element_debug()
 place_element()
 root.mainloop()
