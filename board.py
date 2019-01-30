@@ -190,7 +190,7 @@ class Game:
                 break
 
         # This statement removes every obstacles from the neighbours
-        for m in range(len(self.neighbours) - 1):
+        for m in range(len(self.neighbours)):
             for i in hexagons[base_hexagon]:
                 if i.tags == self.neighbours[m] and (i.color == "#60ace6" or i.color == "#a1603a"):
                     self.obstacles.append(self.neighbours[m])
@@ -308,7 +308,6 @@ class Field:
         self.placeField()
         self.reinstance()
 
-
     def placeField(self):
         for x in range(len(hexagons[base_hexagon])):
             if self.position == hexagons[base_hexagon][x].tags:
@@ -412,6 +411,7 @@ def place_element():
     for m in range(len(mountain_list)):
         Field(mountain_list[m], "mountain")
 
-place_element_debug()
-#place_element()
+
+#place_element_debug()
+place_element()
 root.mainloop()
