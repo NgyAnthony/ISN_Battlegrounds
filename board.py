@@ -95,9 +95,11 @@ class Game:
             if i.selected:
                 previous_squad = hexagons[base_hexagon][self.previous_clicked[len(self.previous_clicked) - 2] - 1].tags
 
+                # <--Second click-->
                 # This loop moves the hexagon
                 if i.tags in self.neighbours:
-                    for x in range(len(hexagons[base_hexagon - 1])):  #
+                    print(self.neighbours)
+                    for x in range(len(hexagons[base_hexagon - 1])):
                         if hexagons[base_hexagon][x].tags == i.tags:
                             i.color = hexagons[base_hexagon][self.previous_clicked[len(self.previous_clicked) - 2] - 1].color
                             hexagons[base_hexagon][self.previous_clicked[len(self.previous_clicked) - 2] - 1].color = "#a1e2a1"
@@ -110,7 +112,7 @@ class Game:
                                     squad_list[r].position = i.tags
                                     print("Click: squad_list at", previous_squad, "now at", i.tags, ".")
 
-                # This for loop look for that can be attacked.
+                # This for loop look for hexagons that can be attacked.
                 for p in range(len(self.enemy_neighbour_inrange)):
                     if i.tags == self.enemy_neighbour_inrange[p].tags:
                         defencer = self.enemy_neighbour_inrange[p]
@@ -119,10 +121,11 @@ class Game:
                                 attacker = squad_list[l]
                         self.attack(defencer, attacker)
                         break
-                # TODO: The attack must be carried on only if i.tags == squad_list[x].position
 
+                # <--First click-->
                 # If the hexagon is empty or an obstacle
                 if i.color == "#a1e2a1" or i.color == "#60ace6" or i.color == "#a1603a":
+                    self.clear_sight()
                     self.canvas_instance.itemconfigure(i.tags, fill="#bdc3c7")  # fill the clicked hex with color
                     print("Click: empty hexagon or obstacle at", i.tags, " selected.")
 
@@ -137,6 +140,12 @@ class Game:
                     elif mp == 2:
                         area = 80
                     self.getNear(i.x, i.y, area, i.tags)  # call possible movements
+
+    # This function resets the "targets" of the chosen position
+    def clear_sight(self):
+        self.neighbours.clear()
+        self.enemy_neighbour.clear()
+        self.friendly_neighbour.clear()
 
     def attack(self, defencer, attacker):
         for x in range(len(squad_list)):
@@ -160,10 +169,7 @@ class Game:
         :return: colors the area where action is possible
 
         """
-
-        self.neighbours.clear()
-        self.enemy_neighbour.clear()
-        self.friendly_neighbour.clear()
+        self.clear_sight()
 
         for a in range(630):
             # define x and y define the zone in which movement will be possible
@@ -188,7 +194,6 @@ class Game:
             for i in hexagons[base_hexagon]:
                 if i.tags == self.neighbours[m] and (i.color == "#60ace6" or i.color == "#a1603a"):
                     self.obstacles.append(self.neighbours[m])
-
         self.neighbours = list(set(self.neighbours) - set(self.obstacles))
 
         # This for loops removes enemies and friendlies and append them to another list
@@ -382,8 +387,8 @@ mountain_list = ['11.0', '11.1', '10.0', '10.1', '9.1', '8.1',
 
 red_squad_infantry_debug = ['15.10', '15.11']
 blue_squad_infantry_debug = ['16.10', '16.11']
-water_list_debug = []
-mountain_list_debug = []
+water_list_debug = ['17.10']
+mountain_list_debug = ['17.11']
 
 
 def place_element_debug():
@@ -407,6 +412,6 @@ def place_element():
     for m in range(len(mountain_list)):
         Field(mountain_list[m], "mountain")
 
-#place_element_debug()
-place_element()
+place_element_debug()
+#place_element()
 root.mainloop()
