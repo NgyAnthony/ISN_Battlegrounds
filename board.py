@@ -7,6 +7,8 @@ new_hexagon = 1  # targets to the empty list to be appended
 squad_list = []  # this list contains all the instances of the Squad class
 red_side_colors = ["#c0392b", "#EE5A24"]
 blue_side_colors = ["#013dc6", "#0652DD"]
+objective_red = ['27.4']
+objective_blue = ['5.14']
 
 
 class App:
@@ -41,6 +43,7 @@ class Game:
             hexagons[base_hexagon - 1][0].parent.pack_forget()
 
         self.canvas_instance.bind("<Button-1>", self.click)  # bind click function when RMB is used
+        self.checkObjective()
 
     def initGrid(self, cols, rows, size, debug):
         """
@@ -233,7 +236,20 @@ class Game:
                     self.canvas_instance.itemconfigure(i.tags, fill="#f1c40f")  # fill the clicked hex with color
 
     def checkObjective(self):
-        pass
+        for i in range(len(hexagons[base_hexagon])):
+            if hexagons[base_hexagon][i].tags == objective_red[0]:
+                for x in blue_side_colors:
+                    if hexagons[base_hexagon][i].color == x:
+                        print("Blue has won !")
+                        #TODO : Create prompt "do you want to play again?"
+
+        for i in range(len(hexagons[base_hexagon])):
+            if hexagons[base_hexagon][i].tags == objective_blue[0]:
+                for x in red_side_colors:
+                    if hexagons[base_hexagon][i].color == x:
+                        print("Red has won !")
+
+
 
 
 class FillHexagon:
@@ -407,12 +423,11 @@ water_list = ['14.8', '14.9', '14.10', '14.11', '15.8', '15.9',
 mountain_list = ['11.0', '11.1', '10.0', '10.1', '9.1', '8.1',
                  '8.2', '8.3', '9.2', '9.3', '7.3', '7.4',
                  '7.5', '6.3', '6.4', '6.5']
-objective_red = ['27.4']
-objective_blue = ['5.14']
+
 
 
 red_squad_infantry_debug = ['5.13', '15.11']
-blue_squad_infantry_debug = ['16.10', '16.11']
+blue_squad_infantry_debug = ['26.3', '16.11']
 water_list_debug = ['17.10']
 mountain_list_debug = ['17.11']
 objective_red_debug = ['27.4']
