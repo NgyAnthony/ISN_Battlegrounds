@@ -5,6 +5,8 @@ hexagons = [[]]  # This is a list of list of the boards of each canvas_instance 
 base_hexagon = 0  # targets current list used for the base
 new_hexagon = 1  # targets to the empty list to be appended
 squad_list = []  # this list contains all the instances of the Squad class
+red_side_colors = ["#c0392b", "#EE5A24"]
+blue_side_colors = ["#013dc6", "#0652DD"]
 
 
 class App:
@@ -30,8 +32,7 @@ class Game:
         self.enemy_neighbour_inrange = []
         self.friendly_neighbour = []
         self.obstacles = []
-        self.red_side_colors = ["#c0392b", "#EE5A24"]
-        self.blue_side_colors = ["#013dc6", "#0652DD"]
+
 
         # This if statement hides the previous instance.
         if base_hexagon == 0:
@@ -103,7 +104,7 @@ class Game:
                         if hexagons[base_hexagon][x].tags == i.tags:
                             i.color = hexagons[base_hexagon][self.previous_clicked[len(self.previous_clicked) - 2] - 1].color
                             hexagons[base_hexagon][self.previous_clicked[len(self.previous_clicked) - 2] - 1].color = "#a1e2a1"
-                            self.reinstance()
+                            reinstance()
                             print("Click:", i.color, "squad moved to", i.tags)
 
                             # This for loop changes the position in squad_list
@@ -130,7 +131,7 @@ class Game:
                     print("Click: empty hexagon or obstacle at", i.tags, " selected.")
 
                 # If the hexagon is a Squad
-                elif i.color in self.red_side_colors or i.color in self.blue_side_colors:
+                elif i.color in red_side_colors or i.color in blue_side_colors:
                     print("Click:", i.color, "hexagon at", i.tags, "has been selected.")
                     for a in range(len(squad_list)):
                         if i.tags == squad_list[a].position:
@@ -154,10 +155,10 @@ class Game:
                 print(squad_list[x].units)
                 if squad_list[x].units == 3:
                     defencer.color = "#EE5A24"
-                    self.reinstance()
+                    reinstance()
                 if squad_list[x].units <= 0:
                     defencer.color = "#a1e2a1"
-                    self.reinstance()
+                    reinstance()
 
     def getNear(self, x, y, area, origin):
         """
@@ -215,8 +216,8 @@ class Game:
             attackable_y0 = y - 50
             attackable_y1 = y + 50
 
-            for a in range(len(self.red_side_colors)):
-                if hexagons[base_hexagon][p].color == self.red_side_colors[a] and \
+            for a in range(len(red_side_colors)):
+                if hexagons[base_hexagon][p].color == red_side_colors[a] and \
                         attackable_x1 >= hexagons[base_hexagon][p].x >= attackable_x0 and \
                         attackable_y1 >= hexagons[base_hexagon][p].y >= attackable_y0:
                         self.enemy_neighbour_inrange.append(hexagons[base_hexagon][p])
@@ -231,12 +232,8 @@ class Game:
                 if i.tags == self.neighbours[m]:
                     self.canvas_instance.itemconfigure(i.tags, fill="#f1c40f")  # fill the clicked hex with color
 
-    def reinstance(self):
-        global hexagons, base_hexagon, new_hexagon
-        hexagons.append([])  # append a new empty list to be used as new_hexagon at the next instance
-        base_hexagon += 1
-        new_hexagon += 1
-        Game(root)  # create new Game instance
+    def checkObjective(self):
+        pass
 
 
 class FillHexagon:
@@ -361,6 +358,33 @@ class Squad:
         Game(root)  # create new Game instance
 
 
+class Objective:
+    def __init__(self, position, side, opposite_side):
+        self.position = position
+        self.side = side
+        self.opposite_side = opposite_side
+        self.color = "#8c7ae6"
+
+        if self.side == "blue":
+            for c in red_side_colors:
+                self.check_ally(c)
+
+        elif self.side == "red":
+            for c in blue_side_colors:
+                self.check_ally(c)
+
+    def check_ally(self, enemy_color):
+        for x in range(len(hexagons[base_hexagon])):
+            if self.position == hexagons[base_hexagon][x].tags and hexagons[base_hexagon][x].color != enemy_color:
+                self.plant_objective()
+
+    def plant_objective(self):
+        for x in range(len(hexagons[base_hexagon])):
+            if self.position == hexagons[base_hexagon][x].tags:
+                hexagons[base_hexagon][x].color = self.color
+                reinstance()
+
+
 root = tk.Tk()
 Game(root)  # first instance of canvas
 
@@ -383,11 +407,16 @@ water_list = ['14.8', '14.9', '14.10', '14.11', '15.8', '15.9',
 mountain_list = ['11.0', '11.1', '10.0', '10.1', '9.1', '8.1',
                  '8.2', '8.3', '9.2', '9.3', '7.3', '7.4',
                  '7.5', '6.3', '6.4', '6.5']
+objective_red = ['27.4']
+objective_blue = ['5.14']
 
-red_squad_infantry_debug = ['15.10', '15.11']
+
+red_squad_infantry_debug = ['5.13', '15.11']
 blue_squad_infantry_debug = ['16.10', '16.11']
 water_list_debug = ['17.10']
 mountain_list_debug = ['17.11']
+objective_red_debug = ['27.4']
+objective_blue_debug = ['5.14']
 
 
 def place_element_debug():
@@ -399,6 +428,10 @@ def place_element_debug():
         Field(water_list_debug[w], "water")
     for m in range(len(mountain_list_debug)):
         Field(mountain_list_debug[m], "mountain")
+    for x in objective_red_debug:
+        Objective(x, "red", "blue")
+    for x in objective_blue_debug:
+        Objective(x, "blue", "red")
 
 
 def place_element():
@@ -410,7 +443,18 @@ def place_element():
         Field(water_list[w], "water")
     for m in range(len(mountain_list)):
         Field(mountain_list[m], "mountain")
+    for x in objective_red:
+        Objective(x, "red", "blue")
+    for x in objective_blue:
+        Objective(x, "blue", "red")
 
+
+def reinstance():
+    global hexagons, base_hexagon, new_hexagon
+    hexagons.append([])  # append a new empty list to be used as new_hexagon at the next @instance
+    base_hexagon += 1
+    new_hexagon += 1
+    Game(root)  # create new Game instance
 
 #place_element_debug()
 place_element()
