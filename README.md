@@ -13,11 +13,14 @@ Le jeu et le code sont entièrement en anglais afin de respecter un assignement 
 Un mode pour les daltoniens est disponible (Protanomaly uniquement). <br>
 Pour cela, modifier la ligne au début du code ```colorblind = 0``` 0 pour des couleurs normales, 1 pour le mode daltonien.
 
+Note : Ce jeu a été crée sous MacOS(version 10.14.2 (18C54)), il est probable que des bugs soient présents sous Windows.
+
 ### Nécéssaire:
     - Python 3.0+
     - TkInter
     - sys
     - os
+    - webbrowser
     
 ### Contenu:
     - /board.py - Le programme à faire tourner
