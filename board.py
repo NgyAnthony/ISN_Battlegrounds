@@ -7,6 +7,8 @@ colorblind = 0  # 0 for normal, 1 for colorblind
 
 hexagons = []  # This is a list of list of the boards of each canvas_instance that is created
 squad_list = []  # this list contains all the instances of the Squad class
+objective_red = ['27.4']
+objective_blue = ['5.14']
 
 if colorblind == 0:
     red_side_colors = ["#c0392b", "#EE5A24"]
@@ -17,11 +19,14 @@ if colorblind == 0:
     water_color = "#60ace6"
     moving_color = "#f1c40f"
 
-    objective_red = ['27.4']
-    objective_blue = ['5.14']
-
 elif colorblind == 1:
-    pass
+    red_side_colors = ["#005952", "#2E4052"]
+    blue_side_colors = ["#0000FF", "#000091"]
+    objective_color = "#8c7ae6"
+    grass_color = "#6FDE6E"
+    mountain_color = "#E1DAAE"
+    water_color = "#00FFFF"
+    moving_color = "#f1c40f"
 
 
 class App:
@@ -59,12 +64,20 @@ class Game:
         self.current_player.pack()
 
         # Images
-        self.blue_player_img = tk.PhotoImage(file='images/blue_player.gif')
-        self.red_player_img = tk.PhotoImage(file='images/red_player.gif')
-        self.water_img = tk.PhotoImage(file='images/water.gif')
-        self.mountain_img = tk.PhotoImage(file='images/mountain.gif')
-        self.objective_img = tk.PhotoImage(file='images/obj.gif')
-        self.grass_img = tk.PhotoImage(file='images/grass.gif')
+        if colorblind == 0 :
+            self.blue_player_img = tk.PhotoImage(file='images/blue_player.gif')
+            self.red_player_img = tk.PhotoImage(file='images/red_player.gif')
+            self.water_img = tk.PhotoImage(file='images/water.gif')
+            self.mountain_img = tk.PhotoImage(file='images/mountain.gif')
+            self.objective_img = tk.PhotoImage(file='images/obj.gif')
+            self.grass_img = tk.PhotoImage(file='images/grass.gif')
+        elif colorblind == 1:
+            self.blue_player_img = tk.PhotoImage(file='images/colorblind/blue_player_colorblind.gif')
+            self.red_player_img = tk.PhotoImage(file='images/colorblind/red_player_colorblind.gif')
+            self.water_img = tk.PhotoImage(file='images/colorblind/water_colorblind.gif')
+            self.mountain_img = tk.PhotoImage(file='images/colorblind/mountain_colorblind.gif')
+            self.objective_img = tk.PhotoImage(file='images/colorblind/obj_colorblind.gif')
+            self.grass_img = tk.PhotoImage(file='images/colorblind/grass_colorblind.gif')
 
         # Image of current playing player
         self.show_player = tk.Button(self.frame)
@@ -313,7 +326,7 @@ class Game:
                     for x in range(len(hexagons) - 1):
                         if hexagons[x].tags == i.tags:
                             i.color = hexagons[self.previous_clicked[len(self.previous_clicked) - 2] - 1].color
-                            hexagons[self.previous_clicked[len(self.previous_clicked) - 2] - 1].color = "#a1e2a1"
+                            hexagons[self.previous_clicked[len(self.previous_clicked) - 2] - 1].color = grass_color
                             print("Click:", i.color, "squad moved to", i.tags)
 
                             # This for loop changes the position in squad_list
@@ -355,15 +368,15 @@ class Game:
                 attacker.ep -= 1
                 if self.playing_side == "blue":
                     if squad_list[x].units == 3:
-                        defencer.color = "#EE5A24"
+                        defencer.color = red_side_colors[1]
                     if squad_list[x].units <= 0:
-                        defencer.color = "#a1e2a1"
+                        defencer.color = grass_color
                         squad_list.remove(squad_list[x])
                 elif self.playing_side == "red":
                     if squad_list[x].units == 3:
-                        defencer.color = "#0652DD"
+                        defencer.color = blue_side_colors[1]
                     if squad_list[x].units <= 0:
-                        defencer.color = "#a1e2a1"
+                        defencer.color = grass_color
                         squad_list.remove(squad_list[x])
                 self.reset_board()
 
@@ -401,7 +414,7 @@ class Game:
         # This statement removes every obstacles from the neighbours
         for m in range(len(self.neighbours)):
             for i in hexagons:
-                if i.tags == self.neighbours[m] and (i.color == "#60ace6" or i.color == "#a1603a"):
+                if i.tags == self.neighbours[m] and (i.color == water_color or i.color == mountain_color):
                     self.obstacles.append(self.neighbours[m])
         self.neighbours = list(set(self.neighbours) - set(self.obstacles))
 
@@ -409,14 +422,14 @@ class Game:
         for m in range(len(self.neighbours)):
             for i in hexagons:
                 if self.playing_side == "blue":
-                    if i.tags == self.neighbours[m] and (i.color == "#c0392b" or i.color == "#EE5A24"):
+                    if i.tags == self.neighbours[m] and i.color in red_side_colors:
                         self.enemy_neighbour.append(self.neighbours[m])
-                    if i.tags == self.neighbours[m] and (i.color == "#013dc6" or i.color == "#0652DD"):
+                    if i.tags == self.neighbours[m] and i.color in blue_side_colors:
                         self.friendly_neighbour.append(self.neighbours[m])
                 elif self.playing_side == "red":
-                    if i.tags == self.neighbours[m] and (i.color == "#c0392b" or i.color == "#EE5A24"):
+                    if i.tags == self.neighbours[m] and i.color in red_side_colors:
                         self.friendly_neighbour.append(self.neighbours[m])
-                    if i.tags == self.neighbours[m] and (i.color == "#013dc6" or i.color == "#0652DD"):
+                    if i.tags == self.neighbours[m] and i.color in blue_side_colors:
                         self.enemy_neighbour.append(self.neighbours[m])
 
         self.neighbours = list(set(self.neighbours) - set(self.enemy_neighbour))
@@ -636,12 +649,12 @@ class Create:
                          '8.2', '8.3', '9.2', '9.3', '7.3', '7.4',
                          '7.5', '6.3', '6.4', '6.5']
 
-        self.red_squad_infantry_debug = ['5.13', '15.11']
-        self.blue_squad_infantry_debug = ['26.3', '16.11']
-        self.water_list_debug = ['17.10']
-        self.mountain_list_debug = ['17.5']
-        self.objective_red_debug = ['27.4']
-        self.objective_blue_debug = ['5.14']
+        self.red_squad_infantry_debug = ['5.11']
+        self.blue_squad_infantry_debug = ['10.11']
+        self.water_list_debug = ['15.11']
+        self.mountain_list_debug = ['20.11']
+        self.objective_red_debug = ['25.11']
+        self.objective_blue_debug = ['30.16']
 
         self.place_element()
 
