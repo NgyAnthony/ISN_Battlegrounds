@@ -1,5 +1,8 @@
 from math import cos, sin, sqrt, radians  # imports used to create hexagons
 import tkinter as tk
+import sys
+import os
+
 colorblind = 0  # 0 for normal, 1 for colorblind
 
 hexagons = []  # This is a list of list of the boards of each canvas_instance that is created
@@ -19,6 +22,7 @@ if colorblind == 0:
 
 elif colorblind == 1:
     pass
+
 
 class App:
     def __init__(self, canvas_instance=None):
@@ -94,7 +98,7 @@ class Game:
 
         # End turn button
         self.end_turn = tk.Button(self.frame, text="End turn", bg="red", command=self.endTurn)
-        self.end_turn.pack(fill="x", side="bottom")
+        self.end_turn.pack(fill="x", side="bottom", pady=(0, 50))
         # < --- Tkinter --->
 
         self.app_instance = App(self.canvas_instance)
@@ -127,14 +131,14 @@ class Game:
             self.current_player.config(text="Player 1")
             for x in range(len(squad_list)):
                 if squad_list[x].position == hexagons[self.hover - 1].tags:
-                    self.current_squad.config(text="HP = %s\nMP = %s" % (squad_list[x].units, squad_list[x].mp))
+                    self.current_squad.config(text="HP = %s\nMP = %s\nAP = %s" % (squad_list[x].units, squad_list[x].mp, squad_list[x].ap))
 
         elif hexagons[self.hover - 1].color in red_side_colors:
             self.show_hover.config(image=self.red_player_img)
             self.current_player.config(text="Player 2")
             for x in range(len(squad_list)):
                 if squad_list[x].position == hexagons[self.hover - 1].tags:
-                    self.current_squad.config(text="HP = %s\nMP = %s" % (squad_list[x].units, squad_list[x].mp))
+                    self.current_squad.config(text="HP = %s\nMP = %s\nAP = %s" % (squad_list[x].units, squad_list[x].mp, squad_list[x].ap))
 
         elif hexagons[self.hover - 1].color == water_color:
             self.show_hover.config(image=self.water_img)
@@ -398,19 +402,41 @@ class Game:
                 if i.tags == self.neighbours[m] and i.color != objective_color:
                     self.canvas_instance.itemconfigure(i.tags, fill=moving_color)  # fill the clicked hex with color
 
+    def popup_end(self, winner):
+        self.win = tk.Toplevel()
+        self.win.wm_title("Window")
+
+        self.l = tk.Label(self.win, text="%s has won ! Do you want to play again ?" % winner)
+        self.l.pack(side="top")
+
+        self.b = tk.Button(self.win, text="Yes", command=self.restart_program)
+        self.b.pack(side="left")
+
+        self.b = tk.Button(self.win, text="No", command=root.destroy)
+        self.b.pack(side="right")
+
+    def restart_program(self):
+        """Restarts the current program.
+        Note: this function does not return. Any cleanup action (like
+        saving data) must be done before calling this function."""
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
+
     def checkObjective(self):
         for i in range(len(hexagons)):
             if hexagons[i].tags == objective_red[0]:
                 for x in blue_side_colors:
                     if hexagons[i].color == x:
                         print("Blue has won !")
-                        #TODO : Create prompt "do you want to play again?"
+                        self.popup_end("Blue")
 
         for i in range(len(hexagons)):
             if hexagons[i].tags == objective_blue[0]:
                 for x in red_side_colors:
                     if hexagons[i].color == x:
                         print("Red has won !")
+                        self.popup_end("Red")
+
 
 
 class FillHexagon:
