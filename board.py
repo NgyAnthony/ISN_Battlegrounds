@@ -92,6 +92,17 @@ class Game:
         self.current_squad.config(text="")
         self.current_squad.pack(fill="x")
 
+        # Title of status
+        self.sta_txt = tk.Text(self.frame, height="1")
+        self.sta_txt.insert(tk.INSERT, "Status:")
+        self.sta_txt.config(state=tk.DISABLED)
+        self.sta_txt.pack(pady=(30, 0))
+
+        # Show status of click
+        self.status = tk.Button(self.frame, height="5")
+        self.status.config(text="")
+        self.status.pack(fill="x")
+
         # Quit button
         self.quit = tk.Button(self.frame, text="Quit", bg="red", command=root.destroy)
         self.quit.pack(fill="x", side="bottom")
@@ -121,6 +132,11 @@ class Game:
         self.hexagon = self.canvas_instance.create_text(20, 35, text="", anchor="nw")
 
     def moved(self, evt):
+        """
+        This function detects what it's hovering on.
+        :param evt: x and y position of hovering
+        :return: information in interface
+        """
         x, y = evt.x, evt.y  # get the x and y position of RMB event
         self.hover = self.canvas_instance.find_closest(x, y)[0]  # define "clicked" as the closest object near x,y
         self.canvas_instance.itemconfigure(self.tag, text="(%r, %r)" % (evt.x, evt.y))
@@ -131,14 +147,16 @@ class Game:
             self.current_player.config(text="Player 1")
             for x in range(len(squad_list)):
                 if squad_list[x].position == hexagons[self.hover - 1].tags:
-                    self.current_squad.config(text="HP = %s\nMP = %s\nAP = %s" % (squad_list[x].units, squad_list[x].mp, squad_list[x].ap))
+                    self.current_squad.config(text="HP = %s\nMP = %s\nAP = %s\nEP = %s"
+                                                   % (squad_list[x].units, squad_list[x].mp, squad_list[x].ap, squad_list[x].ep))
 
         elif hexagons[self.hover - 1].color in red_side_colors:
             self.show_hover.config(image=self.red_player_img)
             self.current_player.config(text="Player 2")
             for x in range(len(squad_list)):
                 if squad_list[x].position == hexagons[self.hover - 1].tags:
-                    self.current_squad.config(text="HP = %s\nMP = %s\nAP = %s" % (squad_list[x].units, squad_list[x].mp, squad_list[x].ap))
+                    self.current_squad.config(text="HP = %s\nMP = %s\nAP = %s\nEP = %s"
+                                                   % (squad_list[x].units, squad_list[x].mp, squad_list[x].ap, squad_list[x].ep))
 
         elif hexagons[self.hover - 1].color == water_color:
             self.show_hover.config(image=self.water_img)
@@ -167,11 +185,19 @@ class Game:
             self.playing_side = "blue"
             self.show_player.config(image=self.blue_player_img)
             self.show_player.pack()
+            self.reset_squad()
 
         elif self.playing_side == "blue":
             self.playing_side = "red"
             self.show_player.config(image=self.red_player_img)
             self.show_player.pack()
+            self.reset_squad()
+
+    def reset_squad(self):
+        """This function gives back MP and EP to all Squads."""
+        for x in squad_list:
+            x.mp = 2
+            x.ep = 1
 
     def reset_board(self):
         for i in hexagons:
@@ -245,6 +271,10 @@ class Game:
                         area = 50
                     elif mp == 2:
                         area = 80
+                    elif mp == 0:
+                        area = 0
+                        self.status.config(text="Out of MP !")
+
                     self.getNear(i.x, i.y, area, i.tags)  # call possible movements
 
                 elif self.playing_side == "blue" and i.color in blue_side_colors:
@@ -263,14 +293,21 @@ class Game:
                     self.clear_sight()
                     self.previous_clicked.clear()
                     print("Click: it's not the turn of the selected unit.")
+                    self.status.config(text="Not your turn !")
 
                 elif self.playing_side == "blue" and i.color in red_side_colors:
                     self.clear_sight()
                     self.previous_clicked.clear()
                     print("Click: it's not the turn of the selected unit.")
+                    self.status.config(text="Not your turn !")
 
             # <--Second click-->
             elif i.selected and len(self.previous_clicked) % 2 == 0:
+                # If the second and first click are in the same team
+                if self.playing_side == "red" and i.color in red_side_colors:
+                    self.clear_sight()
+                    self.previous_clicked.clear()
+
                 # This loop moves the hexagon
                 if i.tags in self.neighbours:
                     for x in range(len(hexagons) - 1):
@@ -284,6 +321,7 @@ class Game:
                                 if squad_list[r].position == previous_squad:
                                     squad_list[r].position = i.tags
                                     print("Click: squad_list at", previous_squad, "now at", i.tags, ".")
+                                    squad_list[r].mp -= 1
 
                 # This for loop look for hexagons that can be attacked.
                 for p in range(len(self.enemy_neighbour_inrange)):
@@ -292,9 +330,15 @@ class Game:
                         for l in range(len(squad_list)):
                             if squad_list[l].position == previous_squad:
                                 attacker = squad_list[l]
-                        self.attack(defencer, attacker)
+                        if attacker.ep == 0:
+                            self.status.config(text="Out of energy!")
+                        else:
+                            self.attack(defencer, attacker)
+
                         break
                 self.reset_board()
+                self.clear_sight()
+                self.previous_clicked.clear()
                 self.checkObjective()
 
     # This function resets the "targets" of the chosen position
@@ -302,21 +346,27 @@ class Game:
         self.neighbours.clear()
         self.enemy_neighbour.clear()
         self.friendly_neighbour.clear()
+        self.enemy_neighbour_inrange.clear()
 
     def attack(self, defencer, attacker):
         for x in range(len(squad_list)):
             if squad_list[x].position == defencer.tags:
                 squad_list[x].units -= attacker.ap
+                attacker.ep -= 1
                 if self.playing_side == "blue":
                     if squad_list[x].units == 3:
                         defencer.color = "#EE5A24"
                     if squad_list[x].units <= 0:
                         defencer.color = "#a1e2a1"
+                        squad_list.remove(squad_list[x])
                 elif self.playing_side == "red":
                     if squad_list[x].units == 3:
                         defencer.color = "#0652DD"
                     if squad_list[x].units <= 0:
                         defencer.color = "#a1e2a1"
+                        squad_list.remove(squad_list[x])
+                self.reset_board()
+
 
     def getNear(self, x, y, area, origin):
         """
@@ -438,7 +488,6 @@ class Game:
                         self.popup_end("Red")
 
 
-
 class FillHexagon:
     def __init__(self, parent, x, y, length, color, tags):
         """ Define parameters of the hexagon """
@@ -506,14 +555,14 @@ class Field:
 
 
 class Squad:
-    def __init__(self, side, units, arsenal, ap, dp, mp, position, color):
+    def __init__(self, side, units, arsenal, ap, ep, mp, position, color):
         """
                        This class generates a Squad and re-instances the board.
         :param side: The side determines if you're on the blue or red side.
         :param units: Units are the numbers of units. They're basically HP.
         :param arsenal: Arsenal determines if the Squad is made of tanks, rangers...
         :param ap: Attack points.
-        :param dp: Defense points.
+        :param ep: Energy points
         :param mp: Movement points.
         :param position: Position on the board. (x.y)
         :param color: Color code.
@@ -522,7 +571,7 @@ class Squad:
         self.units = units
         self.arsenal = arsenal
         self.ap = ap  # attack points
-        self.dp = dp  # defense points
+        self.ep = ep  # energy points
         self.mp = mp  # movement points
         self.position = position
         self.color = color
@@ -612,9 +661,9 @@ class Create:
 
     def place_element(self):
         for r in range(len(self.red_squad_infantry)):
-            Squad("red", 6, 'infantry', 3, 3, 2, self.red_squad_infantry[r], red_side_colors[0])
+            Squad("red", 6, 'infantry', 3, 1, 2, self.red_squad_infantry[r], red_side_colors[0])
         for b in range(len(self.blue_squad_infantry)):
-            Squad("blue", 6, 'infantry', 3, 3, 2, self.blue_squad_infantry[b], blue_side_colors[0])
+            Squad("blue", 6, 'infantry', 3, 1, 2, self.blue_squad_infantry[b], blue_side_colors[0])
         for w in range(len(self.water_list)):
             Field(self.water_list[w], "water")
         for m in range(len(self.mountain_list)):
