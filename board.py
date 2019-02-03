@@ -1,22 +1,24 @@
 from math import cos, sin, sqrt, radians  # imports used to create hexagons
 import tkinter as tk
+colorblind = 0  # 0 for normal, 1 for colorblind
 
 hexagons = []  # This is a list of list of the boards of each canvas_instance that is created
 squad_list = []  # this list contains all the instances of the Squad class
 
-red_side_colors = ["#c0392b", "#EE5A24"]
-blue_side_colors = ["#013dc6", "#0652DD"]
-objective_color = "#8c7ae6"
-grass_color = "#a1e2a1"
-mountain_color = "#60ace6"
-water_color = "#a1603a"
-moving_color = "#f1c40f"
+if colorblind == 0:
+    red_side_colors = ["#c0392b", "#EE5A24"]
+    blue_side_colors = ["#013dc6", "#0652DD"]
+    objective_color = "#8c7ae6"
+    grass_color = "#a1e2a1"
+    mountain_color = "#a1603a"
+    water_color = "#60ace6"
+    moving_color = "#f1c40f"
 
-objective_red = ['27.4']
-objective_blue = ['5.14']
-playing_side = "red"
+    objective_red = ['27.4']
+    objective_blue = ['5.14']
 
-
+elif colorblind == 1:
+    pass
 
 class App:
     def __init__(self, canvas_instance=None):
@@ -30,8 +32,71 @@ class Game:
     def __init__(self, master):
         self.master = master
         self.master.title("Battlegrounds")
-        self.canvas_instance = tk.Canvas(self.master, width=1280, height=800, bg=grass_color)
+        self.master.geometry("1440x800")
+
+        # <---Tkinter --->
+        # Frame and canvas
+        self.canvas_instance = tk.Canvas(self.master, width=1280, height=800, bg=grass_color, relief="ridge", borderwidth="10")
+        self.frame = tk.Frame(self.master, width=130, height=800, bg="blue", padx="5", relief="ridge", borderwidth="10", pady="5")
+        self.frame.pack_propagate(0)
+        self.frame.pack(side="left")
         self.canvas_instance.pack()
+
+        # Title
+        self.title = tk.Text(self.frame, height="1")
+        self.title.insert(tk.INSERT, "BATTLEGROUNDS")
+        self.title.config(state=tk.DISABLED)
+        self.title.pack(pady=(10, 50))
+
+        # Title of turn
+        self.current_player = tk.Text(self.frame, height="1")
+        self.current_player.insert(tk.INSERT, "Turn of:")
+        self.current_player.config(state=tk.DISABLED)
+        self.current_player.pack()
+
+        # Images
+        self.blue_player_img = tk.PhotoImage(file='images/blue_player.gif')
+        self.red_player_img = tk.PhotoImage(file='images/red_player.gif')
+        self.water_img = tk.PhotoImage(file='images/water.gif')
+        self.mountain_img = tk.PhotoImage(file='images/mountain.gif')
+        self.objective_img = tk.PhotoImage(file='images/obj.gif')
+        self.grass_img = tk.PhotoImage(file='images/grass.gif')
+
+        # Image of current playing player
+        self.show_player = tk.Button(self.frame)
+        self.show_player.config(image=self.red_player_img)
+        self.show_player.pack()
+
+        # Title of hovering
+        self.current = tk.Text(self.frame, height="1")
+        self.current.insert(tk.INSERT, "Hovering:")
+        self.current.config(state=tk.DISABLED)
+        self.current.pack(pady=(50, 0))
+
+        # Name of hovering object
+        self.current_player = tk.Button(self.frame)
+        self.current_player.config(text="Grass")
+        self.current_player.pack(fill="x")
+
+        # Image of hovering hexagon
+        self.show_hover = tk.Button(self.frame)
+        self.show_hover.config(image=self.grass_img, state=tk.DISABLED)
+        self.show_hover.pack()
+
+        # Information and details of hexagon
+        self.current_squad = tk.Button(self.frame, height="5")
+        self.current_squad.config(text="")
+        self.current_squad.pack(fill="x")
+
+        # Quit button
+        self.quit = tk.Button(self.frame, text="Quit", bg="red", command=root.destroy)
+        self.quit.pack(fill="x", side="bottom")
+
+        # End turn button
+        self.end_turn = tk.Button(self.frame, text="End turn", bg="red", command=self.endTurn)
+        self.end_turn.pack(fill="x", side="bottom")
+        # < --- Tkinter --->
+
         self.app_instance = App(self.canvas_instance)
         self.initGrid(35, 18, 25, debug=False)  # Calls init grid with cols, rows and size.
         Create()
@@ -43,9 +108,66 @@ class Game:
         self.enemy_neighbour_inrange = []
         self.friendly_neighbour = []
         self.obstacles = []
+        self.playing_side = "red"
 
         self.canvas_instance.bind("<Button-1>", self.click)  # bind click function when RMB is used
-        self.checkObjective()
+        self.canvas_instance.bind("<Motion>", self.moved)
+
+        self.tag = self.canvas_instance.create_text(20, 20, text="", anchor="nw")
+        self.hexagon = self.canvas_instance.create_text(20, 35, text="", anchor="nw")
+
+    def moved(self, evt):
+        x, y = evt.x, evt.y  # get the x and y position of RMB event
+        self.hover = self.canvas_instance.find_closest(x, y)[0]  # define "clicked" as the closest object near x,y
+        self.canvas_instance.itemconfigure(self.tag, text="(%r, %r)" % (evt.x, evt.y))
+        self.canvas_instance.itemconfigure(self.hexagon, text="(%r)" % self.hover)
+
+        if hexagons[self.hover - 1].color in blue_side_colors:
+            self.show_hover.config(image=self.blue_player_img)
+            self.current_player.config(text="Player 1")
+            for x in range(len(squad_list)):
+                if squad_list[x].position == hexagons[self.hover - 1].tags:
+                    self.current_squad.config(text="HP = %s\nMP = %s" % (squad_list[x].units, squad_list[x].mp))
+
+        elif hexagons[self.hover - 1].color in red_side_colors:
+            self.show_hover.config(image=self.red_player_img)
+            self.current_player.config(text="Player 2")
+            for x in range(len(squad_list)):
+                if squad_list[x].position == hexagons[self.hover - 1].tags:
+                    self.current_squad.config(text="HP = %s\nMP = %s" % (squad_list[x].units, squad_list[x].mp))
+
+        elif hexagons[self.hover - 1].color == water_color:
+            self.show_hover.config(image=self.water_img)
+            self.current_player.config(text="Water")
+            self.current_squad.config(text="Indestructible\nobject.")
+
+        elif hexagons[self.hover - 1].color == mountain_color:
+            self.show_hover.config(image=self.mountain_img)
+            self.current_player.config(text="Mountain")
+            self.current_squad.config(text="Indestructible\nobject.")
+
+        elif hexagons[self.hover - 1].color == objective_color:
+            self.show_hover.config(image=self.objective_img)
+            self.current_player.config(text="Objective")
+            self.current_squad.config(text="Empty\nposition.")
+
+        elif hexagons[self.hover - 1].color == grass_color:
+            self.show_hover.config(image=self.grass_img)
+            self.current_player.config(text="Grass")
+            self.current_squad.config(text="Empty\nposition.")
+
+        self.show_hover.pack()
+
+    def endTurn(self):
+        if self.playing_side == "red":
+            self.playing_side = "blue"
+            self.show_player.config(image=self.blue_player_img)
+            self.show_player.pack()
+
+        elif self.playing_side == "blue":
+            self.playing_side = "red"
+            self.show_player.config(image=self.red_player_img)
+            self.show_player.pack()
 
     def reset_board(self):
         for i in hexagons:
@@ -61,7 +183,6 @@ class Game:
         :param debug: True/False, make text appear on hexagons
         :return: game board is returned
         """
-        color = "#a1e2a1"  # default color
         for c in range(cols):  # avoid overlapping hexagons
             if c % 2 == 0:
                 offset = size * sqrt(3) / 2
@@ -111,7 +232,7 @@ class Game:
                     print("Click: empty hexagon or obstacle at", i.tags, " selected.")
 
                 # If the hexagon is on the playing side, allow movement
-                if playing_side == "red" and i.color in red_side_colors:
+                if self.playing_side == "red" and i.color in red_side_colors:
                     print("Click:", i.color, "hexagon at", i.tags, "has been selected.")
                     for a in range(len(squad_list)):
                         if i.tags == squad_list[a].position:
@@ -122,7 +243,7 @@ class Game:
                         area = 80
                     self.getNear(i.x, i.y, area, i.tags)  # call possible movements
 
-                elif playing_side == "blue" and i.color in blue_side_colors:
+                elif self.playing_side == "blue" and i.color in blue_side_colors:
                     print("Click:", i.color, "hexagon at", i.tags, "has been selected.")
                     for a in range(len(squad_list)):
                         if i.tags == squad_list[a].position:
@@ -134,12 +255,14 @@ class Game:
                     self.getNear(i.x, i.y, area, i.tags)  # call possible movements
 
                 # If it's not the turn of the clicked object, disallow movements
-                elif playing_side == "red" and i.color in blue_side_colors:
+                elif self.playing_side == "red" and i.color in blue_side_colors:
                     self.clear_sight()
+                    self.previous_clicked.clear()
                     print("Click: it's not the turn of the selected unit.")
 
-                elif playing_side == "blue" and i.color in red_side_colors:
+                elif self.playing_side == "blue" and i.color in red_side_colors:
                     self.clear_sight()
+                    self.previous_clicked.clear()
                     print("Click: it's not the turn of the selected unit.")
 
             # <--Second click-->
@@ -168,6 +291,7 @@ class Game:
                         self.attack(defencer, attacker)
                         break
                 self.reset_board()
+                self.checkObjective()
 
     # This function resets the "targets" of the chosen position
     def clear_sight(self):
@@ -179,12 +303,12 @@ class Game:
         for x in range(len(squad_list)):
             if squad_list[x].position == defencer.tags:
                 squad_list[x].units -= attacker.ap
-                if playing_side == "blue":
+                if self.playing_side == "blue":
                     if squad_list[x].units == 3:
                         defencer.color = "#EE5A24"
                     if squad_list[x].units <= 0:
                         defencer.color = "#a1e2a1"
-                elif playing_side == "red":
+                elif self.playing_side == "red":
                     if squad_list[x].units == 3:
                         defencer.color = "#0652DD"
                     if squad_list[x].units <= 0:
@@ -230,12 +354,12 @@ class Game:
         # This for loops removes enemies and friendlies and append them to another list
         for m in range(len(self.neighbours)):
             for i in hexagons:
-                if playing_side == "blue":
+                if self.playing_side == "blue":
                     if i.tags == self.neighbours[m] and (i.color == "#c0392b" or i.color == "#EE5A24"):
                         self.enemy_neighbour.append(self.neighbours[m])
                     if i.tags == self.neighbours[m] and (i.color == "#013dc6" or i.color == "#0652DD"):
                         self.friendly_neighbour.append(self.neighbours[m])
-                elif playing_side == "red":
+                elif self.playing_side == "red":
                     if i.tags == self.neighbours[m] and (i.color == "#c0392b" or i.color == "#EE5A24"):
                         self.friendly_neighbour.append(self.neighbours[m])
                     if i.tags == self.neighbours[m] and (i.color == "#013dc6" or i.color == "#0652DD"):
@@ -253,12 +377,12 @@ class Game:
             attackable_y1 = y + 50
 
             for a in range(len(red_side_colors)):
-                if playing_side == "blue":
+                if self.playing_side == "blue":
                     if hexagons[p].color == red_side_colors[a] and \
                             attackable_x1 >= hexagons[p].x >= attackable_x0 and \
                             attackable_y1 >= hexagons[p].y >= attackable_y0:
                             self.enemy_neighbour_inrange.append(hexagons[p])
-                elif playing_side == "red":
+                elif self.playing_side == "red":
                     if hexagons[p].color == blue_side_colors[a] and \
                             attackable_x1 >= hexagons[p].x >= attackable_x0 and \
                             attackable_y1 >= hexagons[p].y >= attackable_y0:
@@ -440,11 +564,11 @@ class Create:
         self.red_squad_infantry_debug = ['5.13', '15.11']
         self.blue_squad_infantry_debug = ['26.3', '16.11']
         self.water_list_debug = ['17.10']
-        self.mountain_list_debug = ['17.11']
+        self.mountain_list_debug = ['17.5']
         self.objective_red_debug = ['27.4']
         self.objective_blue_debug = ['5.14']
 
-        self.place_element_debug()
+        self.place_element()
 
     def place_element_debug(self):
         for r in range(len(self.red_squad_infantry_debug)):
