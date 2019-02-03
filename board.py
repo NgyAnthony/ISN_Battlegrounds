@@ -2,13 +2,14 @@ from math import cos, sin, sqrt, radians  # imports used to create hexagons
 import tkinter as tk
 import sys
 import os
-
-colorblind = 0  # 0 for normal, 1 for colorblind
+import webbrowser
 
 hexagons = []  # This is a list of list of the boards of each canvas_instance that is created
 squad_list = []  # this list contains all the instances of the Squad class
 objective_red = ['27.4']
 objective_blue = ['5.14']
+colorblind = 0  # 0 for normal, 1 for colorblind
+
 
 if colorblind == 0:
     red_side_colors = ["#c0392b", "#EE5A24"]
@@ -42,6 +43,7 @@ class Game:
         self.master = master
         self.master.title("Battlegrounds")
         self.master.geometry("1440x800")
+        self.url = "https://github.com/NgyAnthony/ISN_Battlegrounds-"
 
         # <---Tkinter --->
         # Frame and canvas
@@ -64,7 +66,7 @@ class Game:
         self.current_player.pack()
 
         # Images
-        if colorblind == 0 :
+        if colorblind == 0:
             self.blue_player_img = tk.PhotoImage(file='images/blue_player.gif')
             self.red_player_img = tk.PhotoImage(file='images/red_player.gif')
             self.water_img = tk.PhotoImage(file='images/water.gif')
@@ -123,6 +125,11 @@ class Game:
         # End turn button
         self.end_turn = tk.Button(self.frame, text="End turn", bg="red", command=self.endTurn)
         self.end_turn.pack(fill="x", side="bottom", pady=(0, 50))
+
+        # Github
+        self.more = tk.Button(self.frame, text="Rules", bg="red", command=self.openweb)
+        self.more.pack(fill="x", side="bottom", pady=(0, 10))
+
         # < --- Tkinter --->
 
         self.app_instance = App(self.canvas_instance)
@@ -144,6 +151,9 @@ class Game:
         self.tag = self.canvas_instance.create_text(20, 20, text="", anchor="nw")
         self.hexagon = self.canvas_instance.create_text(20, 35, text="", anchor="nw")
 
+    def openweb(self):
+        webbrowser.open(self.url)
+
     def moved(self, evt):
         """
         This function detects what it's hovering on.
@@ -154,7 +164,6 @@ class Game:
         self.hover = self.canvas_instance.find_closest(x, y)[0]  # define "clicked" as the closest object near x,y
         self.canvas_instance.itemconfigure(self.tag, text="(%r, %r)" % (evt.x, evt.y))
         self.canvas_instance.itemconfigure(self.hexagon, text="(%r)" % self.hover)
-
         if hexagons[self.hover - 1].color in blue_side_colors:
             self.show_hover.config(image=self.blue_player_img)
             self.current_player.config(text="Player 1")
