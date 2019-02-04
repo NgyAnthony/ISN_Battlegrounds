@@ -6,6 +6,7 @@ import webbrowser
 
 hexagons = []  # This is a list of list of the boards of each canvas_instance that is created
 squad_list = []  # this list contains all the instances of the Squad class
+bonus_list = []
 objective_red = ['27.4']
 objective_blue = ['5.14']
 colorblind = 0  # 0 for normal, 1 for colorblind
@@ -19,6 +20,7 @@ if colorblind == 0:
     mountain_color = "#a1603a"
     water_color = "#60ace6"
     moving_color = "#f1c40f"
+    bonus_color = "#5150BA"
 
 elif colorblind == 1:
     red_side_colors = ["#005952", "#2E4052"]
@@ -28,6 +30,7 @@ elif colorblind == 1:
     mountain_color = "#E1DAAE"
     water_color = "#00FFFF"
     moving_color = "#f1c40f"
+    bonus_color = "#5150BA"
 
 
 class App:
@@ -296,7 +299,6 @@ class Game:
                     elif mp == 0:
                         area = 0
                         self.status.config(text="Out of MP !")
-
                     self.getNear(i.x, i.y, area, i.tags)  # call possible movements
 
                 elif self.playing_side == "blue" and i.color in blue_side_colors:
@@ -308,6 +310,9 @@ class Game:
                         area = 50
                     elif mp == 2:
                         area = 80
+                    elif mp == 0:
+                        area = 0
+                        self.status.config(text="Out of MP !")
                     self.getNear(i.x, i.y, area, i.tags)  # call possible movements
 
                 # If it's not the turn of the clicked object, disallow movements
@@ -325,13 +330,32 @@ class Game:
 
             # <--Second click-->
             elif i.selected and len(self.previous_clicked) % 2 == 0:
+                # If the user moves on a bonus
+                if i.tags in self.neighbours and i.color == bonus_color:
+                    i.color = hexagons[self.previous_clicked[len(self.previous_clicked) - 2] - 1].color
+                    hexagons[self.previous_clicked[len(self.previous_clicked) - 2] - 1].color = grass_color
+                    print("Click:", i.color, "squad moved to", i.tags)
+
+                    # This for loop changes the position in squad_list
+                    for r in range(len(squad_list)):
+                        if squad_list[r].position == previous_squad:
+                            squad_list[r].position = i.tags
+                            print("Click: squad_list at", previous_squad, "now at", i.tags, ".")
+                            squad_list[r].mp -= 1
+                            for x in range(len(bonus_list)):
+                                for a in range(len(squad_list)):
+                                    if bonus_list[x].position == squad_list[a].position:
+                                        squad_list[a].ap += bonus_list[x].ap_bonus
+                                        self.status.config(text="+3 AP\npicked up.")
+                                        break
+
                 # If the second and first click are in the same team
-                if self.playing_side == "red" and i.color in red_side_colors:
+                elif self.playing_side == "red" and i.color in red_side_colors:
                     self.clear_sight()
                     self.previous_clicked.clear()
 
                 # This loop moves the hexagon
-                if i.tags in self.neighbours:
+                elif i.tags in self.neighbours:
                     for x in range(len(hexagons) - 1):
                         if hexagons[x].tags == i.tags:
                             i.color = hexagons[self.previous_clicked[len(self.previous_clicked) - 2] - 1].color
@@ -378,17 +402,17 @@ class Game:
                 if self.playing_side == "blue":
                     if squad_list[x].units == 3:
                         defencer.color = red_side_colors[1]
-                    if squad_list[x].units <= 0:
+                    elif squad_list[x].units <= 0:
                         defencer.color = grass_color
                         squad_list.remove(squad_list[x])
                 elif self.playing_side == "red":
                     if squad_list[x].units == 3:
                         defencer.color = blue_side_colors[1]
-                    if squad_list[x].units <= 0:
+                    elif squad_list[x].units <= 0:
                         defencer.color = grass_color
                         squad_list.remove(squad_list[x])
                 self.reset_board()
-
+                break
 
     def getNear(self, x, y, area, origin):
         """
@@ -636,6 +660,21 @@ class Objective:
                 hexagons[x].color = self.color
 
 
+class Bonus:
+    def __init__(self, position, ap_bonus):
+        self.position = position
+        self.color = bonus_color
+        self.ap_bonus = ap_bonus
+        self.plant_bonus()
+
+    def plant_bonus(self):
+        for x in range(len(hexagons)):
+            if self.position == hexagons[x].tags:
+                hexagons[x].color = self.color
+                break
+        bonus_list.append(self)
+
+
 class Create:
     def __init__(self):
         self.red_squad_infantry = ['21.10', '23.10', '25.10', '27.10', '29.10', '31.10',
@@ -657,6 +696,7 @@ class Create:
         self.mountain_list = ['11.0', '11.1', '10.0', '10.1', '9.1', '8.1',
                          '8.2', '8.3', '9.2', '9.3', '7.3', '7.4',
                          '7.5', '6.3', '6.4', '6.5']
+        self.bonus = ['5.5']
 
         self.red_squad_infantry_debug = ['5.11']
         self.blue_squad_infantry_debug = ['10.11']
@@ -664,6 +704,7 @@ class Create:
         self.mountain_list_debug = ['20.11']
         self.objective_red_debug = ['25.11']
         self.objective_blue_debug = ['30.16']
+        self.bonus_debug = ['5.5']
 
         self.place_element()
 
@@ -680,6 +721,8 @@ class Create:
             Objective(x, "red", "blue")
         for x in self.objective_blue_debug:
             Objective(x, "blue", "red")
+        for a in self.bonus_debug:
+            Bonus(a, 3)
 
     def place_element(self):
         for r in range(len(self.red_squad_infantry)):
@@ -694,6 +737,8 @@ class Create:
             Objective(x, "red", "blue")
         for x in objective_blue:
             Objective(x, "blue", "red")
+        for a in self.bonus:
+            Bonus(a, 3)
 
 
 root = tk.Tk()
