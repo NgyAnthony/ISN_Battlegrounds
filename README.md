@@ -13,7 +13,8 @@ Le jeu et le code sont entièrement en anglais afin de respecter un assignement 
 Un mode pour les daltoniens est disponible (Protanomaly uniquement). <br>
 Pour cela, modifier la ligne au début du code ```colorblind = 0``` 0 pour des couleurs normales, 1 pour le mode daltonien.
 
-Note : Ce jeu a été crée sous MacOS(version 10.14.2 (18C54)), il est probable que des bugs soient présents sous Windows.
+Note : Ce jeu a été crée sous MacOS(version 10.14.2 (18C54)), il est probable que des bugs soient présents sous Windows.<br>
+Une partie du code qui compose le plateau est un fork de https://github.com/noobien/pytk-hexagon-grid
 
 ### Nécéssaire:
     - Python 3.0+
