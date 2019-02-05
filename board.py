@@ -4,6 +4,7 @@ import sys
 import os
 import webbrowser
 
+
 hexagons = []  # This is a list of list of the boards of each canvas_instance that is created
 squad_list = []  # this list contains all the instances of the Squad class
 bonus_list = []
@@ -580,26 +581,7 @@ class FillHexagon:
                                    tags=self.tags)
 
 
-class Field:
-    # Class field changes the color of an object in hexagons
-    #
-    types = {
-        "water": water_color,
-        "mountain": mountain_color
-    }
-
-    def __init__(self, position, kind):
-        self.position = position
-        self.kind = kind
-        self.color = Field.types[self.kind]
-        self.placeField()
-
-    def placeField(self):
-        for x in range(len(hexagons)):
-            if self.position == hexagons[x].tags:
-                hexagons[x].color = self.color
-
-
+# <------------------------- ELEMENTS ------------------------->
 class Squad:
     def __init__(self, side, units, arsenal, ap, ep, mp, position, color):
         """
@@ -675,6 +657,27 @@ class Bonus:
         bonus_list.append(self)
 
 
+class Field:
+    # Class field changes the color of an object in hexagons
+    #
+    types = {
+        "water": water_color,
+        "mountain": mountain_color
+    }
+
+    def __init__(self, position, kind):
+        self.position = position
+        self.kind = kind
+        self.color = Field.types[self.kind]
+        self.placeField()
+
+    def placeField(self):
+        for x in range(len(hexagons)):
+            if self.position == hexagons[x].tags:
+                hexagons[x].color = self.color
+
+
+# <------------------------- Maps ------------------------->
 class Create:
     def __init__(self):
         self.red_squad_infantry = ['21.10', '23.10', '25.10', '27.10', '29.10', '31.10',
@@ -739,6 +742,7 @@ class Create:
             Objective(x, "blue", "red")
         for a in self.bonus:
             Bonus(a, 3)
+
 
 
 root = tk.Tk()
