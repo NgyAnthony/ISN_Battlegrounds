@@ -44,6 +44,7 @@ Un esquadron possède donc 4 caractéristiques :
 - *MP (Movement points)* : ce sont les points de mouvements. Ils déterminent le nombre de cases que l'esquadron peut se déplacer.
 
 A chaque tour, le joueur peut déplacer autant d'esquadrons qu'il souhaite.
+Capturer des bonus permet d'augmenter les points d'attaque de l'esquadron.
 
 ### Fonctionnement:
 - Joueur 1 :
@@ -54,8 +55,8 @@ A chaque tour, le joueur peut déplacer autant d'esquadrons qu'il souhaite.
 ![alt text](https://i.imgur.com/XLCXeyz.png) ver. daltonien![alt text](https://i.imgur.com/omIGrjL.png)
 - Montagne :
 ![alt text](https://i.imgur.com/CUfK0nf.png) ver. daltonien![alt text](https://i.imgur.com/HamxFE9.png)
-- Eau :
-![alt text](https://i.imgur.com/vpstBkV.png) ver. daltonien![alt text](https://i.imgur.com/9O5ZomI.png)
+- Bonus :
+![alt text](https://i.imgur.com/mv5ZxMw.png)
 
 Sur le côté gauche, une barre d'information est disponible:
 
