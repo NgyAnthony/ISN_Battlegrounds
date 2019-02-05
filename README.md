@@ -16,6 +16,7 @@ Pour cela, modifier la ligne au début du code ```colorblind = 0``` 0 pour des c
 Note : Ce jeu a été crée sous MacOS(version 10.14.2 (18C54)), il est probable que des bugs soient présents sous Windows.<br>
 Une partie du code qui compose le plateau est un fork de https://github.com/noobien/pytk-hexagon-grid
 
+![alt text](https://i.imgur.com/mZw9hX3.png)
 ### Nécéssaire:
     - Python 3.0+
     - TkInter
@@ -43,8 +44,8 @@ Un esquadron possède donc 4 caractéristiques :
 - *EP (Energy points)* : ce sont les points d'énergie. Ils déterminent le nombre d'attaque possible.
 - *MP (Movement points)* : ce sont les points de mouvements. Ils déterminent le nombre de cases que l'esquadron peut se déplacer.
 
-A chaque tour, le joueur peut déplacer autant d'esquadrons qu'il souhaite.
-Capturer des bonus permet d'augmenter les points d'attaque de l'esquadron.
+A chaque tour, le joueur peut déplacer autant d'esquadrons qu'il souhaite.<br>
+Capturer des bonus permet d'augmenter les points d'attaque de l'esquadron. Les bonus sont dispersés partout sur la map.
 
 ### Fonctionnement:
 - Joueur 1 :
@@ -56,7 +57,7 @@ Capturer des bonus permet d'augmenter les points d'attaque de l'esquadron.
 - Montagne :
 ![alt text](https://i.imgur.com/CUfK0nf.png) ver. daltonien![alt text](https://i.imgur.com/HamxFE9.png)
 - Bonus :
-![alt text](https://i.imgur.com/mv5ZxMw.png)
+![alt text](https://i.imgur.com/xAmEgQ6.png)
 
 Sur le côté gauche, une barre d'information est disponible:
 
